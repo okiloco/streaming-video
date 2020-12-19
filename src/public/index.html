@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script> -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <title>Emision</title>
+  </head>
+  <body>
+    <h2>Emisor!</h2>
+    <button id="btn">Emitir</button>
+    <video src="" id="video" style="width:800px; height:600px;" autoplay=="true"></video>
+    <canvas id="preview"></canvas>
+    <div class="status"></div>
+    <script>
+        const  canvas = document.querySelector("#preview");
+        const context = canvas.getContext("2d");
+        const btn = document.querySelector("#btn");
+
+        canvas.width = 512;
+        canvas.height = 384;
+        canvas.style.display = "none";
+        context.width = canvas.width;
+        context.height = canvas.height;
+
+        const video = document.querySelector("#video");
+
+        const socket = io();
+
+        function sendMessage(message){
+            document.querySelector(".status")
+            .innerText = message;
+        }
+        function loadCamera(stream){
+            video.srcObject = stream;
+            sendMessage("camara funcionando!");
+        }
+        function errorCamera(){
+            sendMessage("Error en la camara");
+        }
+        function showVideo(video,context){
+            context.drawImage(video,0,0,context.width,context.height);
+            socket.emit("stream",canvas.toDataURL("image/webp"));
+        }
+
+        btn.addEventListener("click",()=>{
+            navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msgGetUserMedua);
+            if(navigator.getUserMedia){
+                navigator.getUserMedia({
+                    video:true
+                },loadCamera,errorCamera);
+            }
+
+            var interval = setInterval(()=>{
+                showVideo(video,context);
+            },30);
+        })
+    </script>
+  </body>
+</html>
